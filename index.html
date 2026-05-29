@@ -567,13 +567,13 @@
     /* ── PRICING ── */
     .pricing-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      max-width: 700px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 980px;
       margin: 0 auto;
     }
 
-    @media (max-width: 580px) { .pricing-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 780px) { .pricing-grid { grid-template-columns: 1fr; max-width: 400px; } }
 
     .plan {
       background: var(--card);
@@ -806,7 +806,7 @@
     <a href="#pricing">Pricing</a>
     <a href="#faq">FAQ</a>
   </div>
-  <a class="btn-glow" href="https://gum.co/voicetype" target="_blank">Get PRO — $9</a>
+  <a class="btn-glow" href="#pricing">Get PRO — from $5/mo</a>
 </nav>
 
 <!-- HERO -->
@@ -849,14 +849,14 @@
     <a class="btn-outline" href="#pricing">See PRO features</a>
   </div>
 
-  <p class="hero-note">500 free transcriptions/day · Windows 10/11 · Works in every app</p>
+  <p class="hero-note">50 free transcriptions/day · PRO from $5/mo · Windows 10/11</p>
 </div>
 
 <!-- STATS -->
 <div class="stats-bar">
   <div class="stats-inner">
     <div class="reveal">
-      <div class="stat-num" data-target="500">0</div>
+      <div class="stat-num" data-target="50">0</div>
       <div class="stat-label">Free transcriptions/day</div>
     </div>
     <div class="reveal reveal-delay-2">
@@ -1042,15 +1042,16 @@
 <section id="pricing" style="text-align:center">
   <div class="section-tag reveal">Pricing</div>
   <h2 class="reveal reveal-delay-1">Simple, <span class="gradient-text">honest pricing</span></h2>
-  <p class="sec-sub reveal reveal-delay-2" style="margin: 0 auto 60px">One-time payment. No subscription. Yours forever.</p>
+  <p class="sec-sub reveal reveal-delay-2" style="margin: 0 auto 60px">Start free. Upgrade when you need more.</p>
 
   <div class="pricing-grid">
+    <!-- FREE -->
     <div class="plan reveal">
       <div class="plan-badge free-b">Free</div>
       <div class="plan-price">$0 <span>/ forever</span></div>
-      <div class="plan-desc">Bring your own Groq API key</div>
+      <div class="plan-desc">Try it — no credit card needed</div>
       <ul class="plan-features">
-        <li><span class="check">✓</span> 500 transcriptions/day</li>
+        <li><span class="check">✓</span> 50 transcriptions/day</li>
         <li><span class="check">✓</span> All 50+ languages</li>
         <li><span class="check">✓</span> Custom hotkey</li>
         <li><span class="check">✓</span> Microphone selection</li>
@@ -1061,10 +1062,11 @@
       <a class="plan-btn free-btn" href="https://gum.co/voicetype" target="_blank">Download Free</a>
     </div>
 
-    <div class="plan pro reveal reveal-delay-3">
-      <div class="plan-badge pro-b">PRO ✦</div>
-      <div class="plan-price"><sup>$</sup>9 <span>one-time</span></div>
-      <div class="plan-desc">Lifetime license · all future updates</div>
+    <!-- MONTHLY -->
+    <div class="plan pro reveal reveal-delay-2">
+      <div class="plan-badge pro-b">PRO Monthly</div>
+      <div class="plan-price"><sup>$</sup>5 <span>/ month</span></div>
+      <div class="plan-desc">Cancel anytime · billed monthly</div>
       <ul class="plan-features">
         <li><span class="check">✓</span> Unlimited transcriptions</li>
         <li><span class="check">✓</span> All 50+ languages</li>
@@ -1074,7 +1076,25 @@
         <li><span class="check">✓</span> Snippets expansion</li>
         <li><span class="check">✓</span> Personal dictionary</li>
       </ul>
-      <a class="plan-btn pro-btn" href="https://gum.co/voicetype" target="_blank">Get PRO — $9</a>
+      <a class="plan-btn pro-btn" href="https://gum.co/voicetype-monthly" target="_blank">Subscribe — $5/mo</a>
+    </div>
+
+    <!-- LIFETIME -->
+    <div class="plan pro reveal reveal-delay-4" style="position:relative">
+      <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#6c63ff,#00d4ff);color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:100px;white-space:nowrap">BEST VALUE</div>
+      <div class="plan-badge pro-b">PRO Lifetime</div>
+      <div class="plan-price"><sup>$</sup>29 <span>one-time</span></div>
+      <div class="plan-desc">Pay once · own it forever</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Unlimited transcriptions</li>
+        <li><span class="check">✓</span> All 50+ languages</li>
+        <li><span class="check">✓</span> Custom hotkey</li>
+        <li><span class="check">✓</span> Microphone selection</li>
+        <li><span class="check">✓</span> AI editing modes</li>
+        <li><span class="check">✓</span> Snippets expansion</li>
+        <li><span class="check">✓</span> Personal dictionary</li>
+      </ul>
+      <a class="plan-btn pro-btn" href="https://gum.co/voicetype-pro" target="_blank">Get Lifetime — $29</a>
     </div>
   </div>
 </section>
