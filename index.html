@@ -1,452 +1,1218 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VoiceType — AI Voice Dictation for Windows</title>
-  <meta name="description" content="Dictate text anywhere on Windows with one hotkey. Powered by Groq Whisper. 500 free transcriptions/day.">
-  <link rel="icon" href="icon-192.png" />
+  <meta name="description" content="Hold a hotkey, speak, release. Text appears in any app. Powered by Groq Whisper large-v3."/>
+  <link rel="icon" href="icon-192.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0a0a12;
-      --card: #13131e;
-      --border: #1e1e2e;
-      --accent: #7c6fff;
-      --accent2: #4fc3f7;
-      --text: #e8e8f0;
-      --muted: #888;
-      --green: #4caf50;
+      --bg: #050508;
+      --bg2: #080810;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --border-glow: rgba(108,99,255,0.4);
+      --accent: #6c63ff;
+      --accent2: #00d4ff;
+      --text: #f0f0ff;
+      --muted: #6b6b8a;
+      --green: #00e676;
+      --gradient: linear-gradient(135deg, #6c63ff, #00d4ff);
     }
+
+    html { scroll-behavior: smooth; }
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: 'Inter', -apple-system, sans-serif;
       line-height: 1.6;
+      overflow-x: hidden;
     }
 
-    a { color: var(--accent2); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    ::selection { background: rgba(108,99,255,.35); }
 
-    /* NAV */
+    /* ── CANVAS ── */
+    #hero-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── NAV ── */
     nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 18px 40px;
+      padding: 16px 48px;
+      background: rgba(5,5,8,.7);
+      backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: rgba(10,10,18,0.92);
-      backdrop-filter: blur(10px);
-      z-index: 10;
+      transition: background .3s;
     }
-    .logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; }
-    .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-    .nav-btn {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 9px 22px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: opacity .2s;
-    }
-    .nav-btn:hover { opacity: .85; text-decoration: none; }
 
-    /* HERO */
-    .hero {
-      text-align: center;
-      padding: 90px 20px 70px;
-      max-width: 760px;
-      margin: 0 auto;
-    }
-    .badge {
-      display: inline-block;
-      background: rgba(124,111,255,.15);
-      border: 1px solid rgba(124,111,255,.3);
-      color: var(--accent);
-      border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 24px;
-    }
-    h1 {
-      font-size: clamp(32px, 5vw, 56px);
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-weight: 800;
-      line-height: 1.15;
-      margin-bottom: 20px;
-      letter-spacing: -1px;
-    }
-    h1 span { color: var(--accent); }
-    .sub {
       font-size: 18px;
-      color: var(--muted);
-      max-width: 560px;
-      margin: 0 auto 36px;
+      letter-spacing: -.3px;
     }
-    .hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-    .btn-primary {
-      background: var(--accent);
+
+    .logo-orb {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--gradient);
+      box-shadow: 0 0 20px rgba(108,99,255,.6);
+      animation: pulse-orb 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-orb {
+      0%,100% { box-shadow: 0 0 20px rgba(108,99,255,.6); transform: scale(1); }
+      50% { box-shadow: 0 0 35px rgba(108,99,255,.9), 0 0 60px rgba(0,212,255,.3); transform: scale(1.05); }
+    }
+
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .btn-glow {
+      background: var(--gradient);
       color: #fff;
       border: none;
       border-radius: 10px;
-      padding: 14px 32px;
-      font-size: 16px;
+      padding: 10px 24px;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer;
       text-decoration: none;
       display: inline-block;
-      transition: opacity .2s, transform .15s;
+      position: relative;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 0 20px rgba(108,99,255,.4);
     }
-    .btn-primary:hover { opacity: .88; transform: translateY(-1px); text-decoration: none; }
-    .btn-secondary {
+    .btn-glow:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 40px rgba(108,99,255,.7), 0 8px 32px rgba(0,0,0,.4);
+      text-decoration: none;
+      color: #fff;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 20px 80px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(108,99,255,.12);
+      border: 1px solid rgba(108,99,255,.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #a8a4ff;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp .8s .2s forwards;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent2);
+      box-shadow: 0 0 8px var(--accent2);
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    h1 {
+      font-size: clamp(40px, 6vw, 76px);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp .8s .4s forwards;
+    }
+
+    .gradient-text {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 540px;
+      margin: 0 auto 40px;
+      font-weight: 400;
+      opacity: 0;
+      animation: fadeUp .8s .6s forwards;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp .8s .8s forwards;
+    }
+
+    .btn-outline {
       background: transparent;
       color: var(--text);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 14px 32px;
-      font-size: 16px;
+      padding: 12px 28px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
       display: inline-block;
-      transition: border-color .2s;
+      transition: border-color .2s, background .2s;
     }
-    .btn-secondary:hover { border-color: var(--accent); text-decoration: none; }
-    .hero-note { margin-top: 16px; font-size: 13px; color: var(--muted); }
-
-    /* HOW IT WORKS */
-    section { padding: 70px 20px; max-width: 900px; margin: 0 auto; }
-    h2 { font-size: 30px; font-weight: 800; text-align: center; margin-bottom: 10px; }
-    .section-sub { text-align: center; color: var(--muted); margin-bottom: 48px; font-size: 16px; }
-
-    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-    .step {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 28px 24px;
+    .btn-outline:hover {
+      border-color: var(--accent);
+      background: rgba(108,99,255,.08);
+      text-decoration: none;
+      color: var(--text);
     }
-    .step-num {
-      width: 36px; height: 36px;
+
+    .btn-primary-lg {
+      background: var(--gradient);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 36px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 0 30px rgba(108,99,255,.5);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary-lg:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 50px rgba(108,99,255,.8), 0 12px 40px rgba(0,0,0,.5);
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .hero-note {
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--muted);
+      opacity: 0;
+      animation: fadeUp .8s 1s forwards;
+    }
+
+    /* Mic icon */
+    .mic-float {
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: fadeUp .8s 0s forwards;
+    }
+    .mic-ring {
+      width: 80px; height: 80px;
       border-radius: 50%;
-      background: rgba(124,111,255,.18);
-      color: var(--accent);
-      font-weight: 800;
-      font-size: 15px;
+      background: rgba(108,99,255,.1);
+      border: 1px solid rgba(108,99,255,.3);
       display: flex; align-items: center; justify-content: center;
+      margin: 0 auto;
+      position: relative;
+      animation: mic-pulse 2.5s ease-in-out infinite;
+    }
+    .mic-ring::before, .mic-ring::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(108,99,255,.2);
+      animation: ripple 2.5s ease-out infinite;
+    }
+    .mic-ring::before { width: 110%; height: 110%; animation-delay: .4s; }
+    .mic-ring::after  { width: 130%; height: 130%; animation-delay: .8s; }
+
+    @keyframes mic-pulse {
+      0%,100% { background: rgba(108,99,255,.1); }
+      50% { background: rgba(108,99,255,.18); }
+    }
+    @keyframes ripple {
+      0% { opacity: .6; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.3); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── STATS ── */
+    .stats-bar {
+      position: relative; z-index: 1;
+      background: rgba(255,255,255,.03);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 20px;
+    }
+
+    .stats-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 42px;
+      font-weight: 900;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-label { font-size: 14px; color: var(--muted); }
+
+    /* ── SECTIONS ── */
+    section {
+      position: relative; z-index: 1;
+      padding: 100px 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.15;
       margin-bottom: 14px;
     }
-    .step h3 { font-size: 16px; margin-bottom: 6px; }
-    .step p { font-size: 14px; color: var(--muted); }
 
-    /* DEMO */
-    .demo-box {
+    .sec-sub {
+      color: var(--muted);
+      font-size: 17px;
+      max-width: 500px;
+      margin-bottom: 60px;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .step-card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
+      border-radius: 20px;
+      padding: 36px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s, transform .3s;
+    }
+
+    .step-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: var(--gradient);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    .step-card:hover {
+      border-color: rgba(108,99,255,.3);
+      transform: translateY(-4px);
+    }
+    .step-card:hover::before { opacity: 1; }
+
+    .step-num {
+      font-size: 48px;
+      font-weight: 900;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .step-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .step-card p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+    .step-hotkey {
+      display: inline-flex;
+      gap: 4px;
+      margin-top: 14px;
+    }
+    .key {
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: monospace;
+      color: var(--accent2);
+    }
+
+    /* ── FEATURES ── */
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .feat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px;
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      transition: border-color .3s, background .3s;
+      backdrop-filter: blur(10px);
+    }
+
+    .feat-card:hover {
+      background: rgba(108,99,255,.06);
+      border-color: rgba(108,99,255,.25);
+    }
+
+    .feat-icon-wrap {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: rgba(108,99,255,.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .feat-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+    .feat-card p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* ── DEMO TERMINAL ── */
+    .demo-wrap {
+      background: rgba(0,0,0,.5);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+    }
+
+    .demo-bar {
+      background: rgba(255,255,255,.04);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.r { background: #ff5f57; }
+    .dot.y { background: #ffbd2e; }
+    .dot.g { background: #28c840; }
+
+    .demo-title {
+      margin-left: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: monospace;
+    }
+
+    .demo-body { padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+
+    .demo-row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .demo-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+
+    .demo-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .demo-text {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .demo-text.typed {
+      border-right: 2px solid var(--accent2);
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0;
+      animation: typing 2s steps(60) 1s forwards;
+    }
+
+    @keyframes typing {
+      to { width: 100%; }
+    }
+
+    /* ── WAVE BARS (decorative) ── */
+    .wave-bars {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 24px;
       margin-top: 10px;
     }
-    .demo-row { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
-    .demo-row:last-child { margin-bottom: 0; }
-    .demo-icon { font-size: 22px; margin-top: 2px; flex-shrink: 0; }
-    .demo-label { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-    .demo-text { font-size: 15px; }
 
-    /* FEATURES */
-    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-    .feat {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 22px 20px;
-      display: flex; gap: 14px; align-items: flex-start;
+    .wave-bar {
+      width: 3px;
+      border-radius: 3px;
+      background: var(--gradient);
+      animation: wave-anim 1s ease-in-out infinite;
     }
-    .feat-icon { font-size: 22px; flex-shrink: 0; }
-    .feat h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-    .feat p { font-size: 13px; color: var(--muted); }
 
-    /* PRICING */
-    .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 640px; margin: 0 auto; }
-    @media (max-width: 520px) { .pricing-grid { grid-template-columns: 1fr; } }
+    @keyframes wave-anim {
+      0%,100% { height: 4px; opacity: .4; }
+      50% { height: 20px; opacity: 1; }
+    }
+
+    /* ── PRICING ── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 580px) { .pricing-grid { grid-template-columns: 1fr; } }
+
     .plan {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 30px 24px;
+      border-radius: 24px;
+      padding: 36px 28px;
+      backdrop-filter: blur(20px);
+      transition: transform .3s, border-color .3s, box-shadow .3s;
     }
-    .plan.pro { border-color: var(--accent); }
-    .plan-name { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .plan-price { font-size: 38px; font-weight: 800; margin-bottom: 4px; }
+
+    .plan:hover { transform: translateY(-6px); }
+
+    .plan.pro {
+      border-color: rgba(108,99,255,.4);
+      background: rgba(108,99,255,.05);
+      box-shadow: 0 0 40px rgba(108,99,255,.12), inset 0 1px 0 rgba(108,99,255,.3);
+    }
+
+    .plan.pro:hover {
+      box-shadow: 0 0 60px rgba(108,99,255,.25), inset 0 1px 0 rgba(108,99,255,.4);
+    }
+
+    .plan-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+    .plan-badge.free-b { background: rgba(255,255,255,.06); color: var(--muted); }
+    .plan-badge.pro-b  { background: var(--gradient); color: #fff; }
+
+    .plan-price {
+      font-size: 52px;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 4px;
+      letter-spacing: -2px;
+    }
+
+    .plan-price sup { font-size: 22px; font-weight: 700; vertical-align: super; margin-right: 2px; }
     .plan-price span { font-size: 16px; font-weight: 400; color: var(--muted); }
-    .plan-desc { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
-    .plan ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
-    .plan ul li { font-size: 14px; display: flex; gap: 8px; align-items: flex-start; }
-    .plan ul li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
-    .plan ul li.no::before { content: '✗'; color: #555; }
-    .plan ul li.no { color: var(--muted); }
-    .plan-cta {
+
+    .plan-desc { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+    .plan-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .plan-features li {
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .plan-features li .check {
+      color: var(--green);
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+
+    .plan-features li .cross {
+      color: #333;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+
+    .plan-features li.dim { color: var(--muted); }
+
+    .plan-btn {
       display: block;
       width: 100%;
-      padding: 12px;
-      border-radius: 10px;
+      padding: 14px;
+      border-radius: 12px;
       font-size: 15px;
       font-weight: 700;
       text-align: center;
-      cursor: pointer;
+      text-decoration: none;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .plan-btn.free-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .plan-btn.free-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
       text-decoration: none;
     }
-    .plan-cta.free { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .plan-cta.free:hover { border-color: var(--accent); text-decoration: none; }
-    .plan-cta.paid { background: var(--accent); color: #fff; border: none; }
-    .plan-cta.paid:hover { opacity: .88; text-decoration: none; }
 
-    /* FAQ */
-    .faq { display: flex; flex-direction: column; gap: 12px; }
+    .plan-btn.pro-btn {
+      background: var(--gradient);
+      color: #fff;
+      border: none;
+      box-shadow: 0 0 20px rgba(108,99,255,.4);
+    }
+    .plan-btn.pro-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 40px rgba(108,99,255,.7);
+      text-decoration: none;
+      color: #fff;
+    }
+
+    /* ── FAQ ── */
+    .faq { display: flex; flex-direction: column; gap: 12px; max-width: 720px; }
+
     details {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 20px;
+      border-radius: 14px;
+      padding: 20px 24px;
+      backdrop-filter: blur(10px);
+      transition: border-color .2s;
     }
+    details:hover { border-color: rgba(108,99,255,.2); }
+    details[open] { border-color: rgba(108,99,255,.3); }
+
     summary {
       font-weight: 600;
       cursor: pointer;
       list-style: none;
-      display: flex; justify-content: space-between; align-items: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
     }
-    summary::after { content: '+'; font-size: 18px; color: var(--muted); }
-    details[open] summary::after { content: '−'; }
-    details p { margin-top: 12px; color: var(--muted); font-size: 14px; }
+    summary::-webkit-details-marker { display: none; }
 
-    /* FOOTER */
-    footer {
-      border-top: 1px solid var(--border);
-      text-align: center;
-      padding: 30px 20px;
+    .faq-icon {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: rgba(108,99,255,.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      color: var(--accent);
+      flex-shrink: 0;
+      transition: background .2s;
+    }
+    details[open] .faq-icon { background: rgba(108,99,255,.25); }
+
+    details p {
+      margin-top: 14px;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    details a { color: var(--accent2); }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 48px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
     }
 
-    /* DIVIDER */
-    .divider { border: none; border-top: 1px solid var(--border); }
+    .footer-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+
+    footer p { font-size: 13px; color: var(--muted); }
+
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color .2s; }
+    .footer-links a:hover { color: var(--text); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .nav-links { display: none; }
+      .stats-inner { grid-template-columns: 1fr; gap: 32px; }
+      footer { flex-direction: column; align-items: flex-start; }
+      .steps { grid-template-columns: 1fr; }
+    }
+
+    /* ── SCROLL ANIMATION CLASSES ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: .1s; }
+    .reveal-delay-2 { transition-delay: .2s; }
+    .reveal-delay-3 { transition-delay: .3s; }
+    .reveal-delay-4 { transition-delay: .4s; }
+    .reveal-delay-5 { transition-delay: .5s; }
+
+    /* Glow divider */
+    .glow-div {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(108,99,255,.5), rgba(0,212,255,.3), transparent);
+      position: relative; z-index: 1;
+    }
   </style>
 </head>
 <body>
 
+<!-- THREE.JS CANVAS -->
+<canvas id="hero-canvas"></canvas>
+
 <!-- NAV -->
 <nav>
   <div class="logo">
-    <div class="logo-dot"></div>
+    <div class="logo-orb"></div>
     VoiceType
   </div>
-  <a class="nav-btn" href="https://gum.co/voicetype" target="_blank">Get PRO — $9</a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <a class="btn-glow" href="https://gum.co/voicetype" target="_blank">Get PRO — $9</a>
 </nav>
 
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">🎙 AI Voice Dictation · Windows</div>
-  <h1>Type with your voice,<br><span>anywhere on Windows</span></h1>
-  <p class="sub">Hold a hotkey, speak, release — text appears in any app. Powered by Groq Whisper large-v3. No subscriptions, no cloud accounts needed.</p>
-  <div class="hero-btns">
-    <a class="btn-primary" href="https://gum.co/voicetype" target="_blank">⬇ Download Free</a>
-    <a class="btn-secondary" href="#pricing">See PRO features</a>
+  <div class="mic-float">
+    <div class="mic-ring">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+        <rect x="9" y="2" width="6" height="11" rx="3" fill="url(#mg)"/>
+        <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="url(#mg2)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="12" y1="19" x2="12" y2="22" stroke="url(#mg2)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="8" y1="22" x2="16" y2="22" stroke="url(#mg2)" stroke-width="2" stroke-linecap="round"/>
+        <defs>
+          <linearGradient id="mg" x1="9" y1="2" x2="15" y2="13" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#6c63ff"/>
+            <stop offset="1" stop-color="#00d4ff"/>
+          </linearGradient>
+          <linearGradient id="mg2" x1="5" y1="10" x2="19" y2="22" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#6c63ff"/>
+            <stop offset="1" stop-color="#00d4ff"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
   </div>
-  <p class="hero-note">500 free transcriptions/day · Works offline (local Whisper) · Windows 10/11</p>
+
+  <div class="hero-badge">✦ Powered by Groq Whisper large-v3</div>
+
+  <h1>
+    Type with your voice.<br>
+    <span class="gradient-text">Instantly. Anywhere.</span>
+  </h1>
+
+  <p class="hero-sub">
+    Hold one hotkey, speak, release — your words appear in any Windows app.
+    No setup. No cloud account. Just speak.
+  </p>
+
+  <div class="hero-btns">
+    <a class="btn-primary-lg" href="https://gum.co/voicetype" target="_blank">⬇ Download Free</a>
+    <a class="btn-outline" href="#pricing">See PRO features</a>
+  </div>
+
+  <p class="hero-note">500 free transcriptions/day · Windows 10/11 · Works in every app</p>
 </div>
 
-<hr class="divider" />
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="reveal">
+      <div class="stat-num" data-target="500">0</div>
+      <div class="stat-label">Free transcriptions/day</div>
+    </div>
+    <div class="reveal reveal-delay-2">
+      <div class="stat-num">&lt;1s</div>
+      <div class="stat-label">Average latency (Groq)</div>
+    </div>
+    <div class="reveal reveal-delay-4">
+      <div class="stat-num">50+</div>
+      <div class="stat-label">Languages supported</div>
+    </div>
+  </div>
+</div>
+
+<div class="glow-div"></div>
 
 <!-- HOW IT WORKS -->
-<section>
-  <h2>How it works</h2>
-  <p class="section-sub">Three steps, zero friction</p>
+<section id="how">
+  <div class="section-tag reveal">How it works</div>
+  <h2 class="reveal reveal-delay-1">Three steps.<br><span class="gradient-text">Zero friction.</span></h2>
+  <p class="sec-sub reveal reveal-delay-2">No Python, no dependencies, no config files. Just run and speak.</p>
+
   <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
+    <div class="step-card reveal">
+      <div class="step-num">01</div>
       <h3>Install & launch</h3>
-      <p>Run VoiceType.exe — no Python, no dependencies. Sits in your system tray.</p>
+      <p>Run <strong>VoiceType.exe</strong> — a single file, no installer needed. App icon appears in your Windows system tray.</p>
     </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <h3>Add your Groq key</h3>
-      <p>Free key from console.groq.com. Groq transcribes audio in &lt;1 second using Whisper large-v3.</p>
+    <div class="step-card reveal reveal-delay-2">
+      <div class="step-num">02</div>
+      <h3>Add Groq API key</h3>
+      <p>Free key from <a href="https://console.groq.com" target="_blank" style="color:var(--accent2)">console.groq.com</a>. Paste into Settings. Groq runs Whisper large-v3 at insane speed.</p>
     </div>
-    <div class="step">
-      <div class="step-num">3</div>
+    <div class="step-card reveal reveal-delay-4">
+      <div class="step-num">03</div>
       <h3>Hold & speak</h3>
-      <p>Hold <strong>Ctrl+Shift+Space</strong>, dictate, release. Text is typed into your active window.</p>
+      <p>Hold your hotkey, say anything, release. Text is typed into whatever app is active — email, Slack, VS Code, anything.</p>
+      <div class="step-hotkey">
+        <span class="key">Ctrl</span>
+        <span class="key">Shift</span>
+        <span class="key">Space</span>
+      </div>
     </div>
   </div>
 </section>
 
-<hr class="divider" />
+<div class="glow-div"></div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-tag reveal">Features</div>
+  <h2 class="reveal reveal-delay-1">Everything you need to<br><span class="gradient-text">dictate faster</span></h2>
+  <p class="sec-sub reveal reveal-delay-2">Built for people who write a lot — developers, writers, support teams.</p>
+
+  <div class="feat-grid">
+    <div class="feat-card reveal">
+      <div class="feat-icon-wrap">⚡</div>
+      <div>
+        <h3>Whisper large-v3 accuracy</h3>
+        <p>State-of-the-art model from OpenAI, running at Groq speed. Best accuracy available today.</p>
+      </div>
+    </div>
+    <div class="feat-card reveal reveal-delay-1">
+      <div class="feat-icon-wrap">🌍</div>
+      <div>
+        <h3>50+ languages, auto-detected</h3>
+        <p>Speaks Russian? English? Mix languages freely. VoiceType detects automatically or you can pin a language.</p>
+      </div>
+    </div>
+    <div class="feat-card reveal reveal-delay-2">
+      <div class="feat-icon-wrap">🎯</div>
+      <div>
+        <h3>Works in every app</h3>
+        <p>Email, Slack, VS Code, Notion, Chrome, Word — any text field. No plugin, no extension needed.</p>
+      </div>
+    </div>
+    <div class="feat-card reveal reveal-delay-3">
+      <div class="feat-icon-wrap">🤖</div>
+      <div>
+        <h3>AI editing modes <span style="color:var(--accent);font-size:11px;font-weight:700">PRO</span></h3>
+        <p>Auto-clean filler words, rewrite as formal email, or code pass-through mode for developers.</p>
+      </div>
+    </div>
+    <div class="feat-card reveal reveal-delay-4">
+      <div class="feat-icon-wrap">📝</div>
+      <div>
+        <h3>Phrase expansion snippets <span style="color:var(--accent);font-size:11px;font-weight:700">PRO</span></h3>
+        <p>Say a trigger phrase → it expands to your full stored text. Perfect for email signatures, code blocks.</p>
+      </div>
+    </div>
+    <div class="feat-card reveal reveal-delay-5">
+      <div class="feat-icon-wrap">🔒</div>
+      <div>
+        <h3>Private by default</h3>
+        <p>Audio goes to Groq's API and nowhere else. Nothing stored, no account required, no telemetry.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-div"></div>
 
 <!-- DEMO -->
 <section>
-  <h2>See it in action</h2>
-  <p class="section-sub">Works in every app — email, Slack, VS Code, Notion, browsers</p>
-  <div class="demo-box">
-    <div class="demo-row">
-      <div class="demo-icon">🎙</div>
-      <div>
-        <div class="demo-label">You say</div>
-        <div class="demo-text">"Hey, quick update — the deploy is done and staging looks good. Let's sync tomorrow at 10."</div>
-      </div>
+  <div class="section-tag reveal">Live demo</div>
+  <h2 class="reveal reveal-delay-1">See it in <span class="gradient-text">action</span></h2>
+  <p class="sec-sub reveal reveal-delay-2">From voice to text in under a second.</p>
+
+  <div class="demo-wrap reveal reveal-delay-2">
+    <div class="demo-bar">
+      <div class="dot r"></div>
+      <div class="dot y"></div>
+      <div class="dot g"></div>
+      <span class="demo-title">VoiceType — Active</span>
     </div>
-    <div class="demo-row">
-      <div class="demo-icon">⚡</div>
-      <div>
-        <div class="demo-label">VoiceType types (in &lt;1s)</div>
-        <div class="demo-text">Hey, quick update — the deploy is done and staging looks good. Let's sync tomorrow at 10.</div>
+    <div class="demo-body">
+      <div class="demo-row">
+        <div class="demo-icon">🎙</div>
+        <div>
+          <div class="demo-label">You say</div>
+          <div class="demo-text">"Hey quick update — the deploy is done and staging looks good. Let's sync tomorrow at ten."</div>
+          <div class="wave-bars" id="waveBars"></div>
+        </div>
       </div>
-    </div>
-    <div class="demo-row">
-      <div class="demo-icon">✨</div>
-      <div>
-        <div class="demo-label">With AI Clean mode (PRO)</div>
-        <div class="demo-text">Hey, quick update — the deploy is done and staging looks good. Let's sync tomorrow at 10.</div>
+      <div class="demo-row">
+        <div class="demo-icon">⚡</div>
+        <div>
+          <div class="demo-label">VoiceType types in &lt;1s</div>
+          <div class="demo-text typed" id="typedText">Hey quick update — the deploy is done and staging looks good. Let's sync tomorrow at 10.</div>
+        </div>
+      </div>
+      <div class="demo-row">
+        <div class="demo-icon">✨</div>
+        <div>
+          <div class="demo-label">With AI Clean mode (PRO)</div>
+          <div class="demo-text" style="color: var(--accent2)">Hey, quick update — the deploy is done and staging looks good. Let's sync tomorrow at 10.</div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<hr class="divider" />
-
-<!-- FEATURES -->
-<section>
-  <h2>Everything you need</h2>
-  <p class="section-sub">Built for people who type a lot</p>
-  <div class="features">
-    <div class="feat">
-      <div class="feat-icon">⚡</div>
-      <div>
-        <h3>Whisper large-v3 accuracy</h3>
-        <p>State-of-the-art transcription via Groq — fast and precise in 50+ languages.</p>
-      </div>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">🌍</div>
-      <div>
-        <h3>Multilingual</h3>
-        <p>Auto-detects language or pin to Russian, English, Ukrainian, German, French, Spanish, Chinese.</p>
-      </div>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">🎯</div>
-      <div>
-        <h3>Works everywhere</h3>
-        <p>Any text field in any Windows app. Email, chats, IDEs, browsers — no plugin needed.</p>
-      </div>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">🔒</div>
-      <div>
-        <h3>Private by default</h3>
-        <p>Audio sent only to Groq's API. Nothing stored, no account, no tracking.</p>
-      </div>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">🤖</div>
-      <div>
-        <h3>AI editing modes (PRO)</h3>
-        <p>Auto-clean filler words, rewrite as formal email, or pass-through for code dictation.</p>
-      </div>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">📝</div>
-      <div>
-        <h3>Snippets & dictionary (PRO)</h3>
-        <p>Say a trigger phrase → expands to full text. Custom terms improve recognition accuracy.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="divider" />
+<div class="glow-div"></div>
 
 <!-- PRICING -->
-<section id="pricing">
-  <h2>Simple pricing</h2>
-  <p class="section-sub">One-time payment. No subscription.</p>
+<section id="pricing" style="text-align:center">
+  <div class="section-tag reveal">Pricing</div>
+  <h2 class="reveal reveal-delay-1">Simple, <span class="gradient-text">honest pricing</span></h2>
+  <p class="sec-sub reveal reveal-delay-2" style="margin: 0 auto 60px">One-time payment. No subscription. Yours forever.</p>
+
   <div class="pricing-grid">
-    <div class="plan">
-      <div class="plan-name">Free</div>
-      <div class="plan-price">$0 <span>forever</span></div>
+    <div class="plan reveal">
+      <div class="plan-badge free-b">Free</div>
+      <div class="plan-price">$0 <span>/ forever</span></div>
       <div class="plan-desc">Bring your own Groq API key</div>
-      <ul>
-        <li>500 transcriptions/day</li>
-        <li>All languages</li>
-        <li>Custom hotkey</li>
-        <li>Microphone selection</li>
-        <li class="no">AI editing modes</li>
-        <li class="no">Snippets</li>
-        <li class="no">Personal dictionary</li>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> 500 transcriptions/day</li>
+        <li><span class="check">✓</span> All 50+ languages</li>
+        <li><span class="check">✓</span> Custom hotkey</li>
+        <li><span class="check">✓</span> Microphone selection</li>
+        <li class="dim"><span class="cross">✗</span> AI editing modes</li>
+        <li class="dim"><span class="cross">✗</span> Snippets</li>
+        <li class="dim"><span class="cross">✗</span> Personal dictionary</li>
       </ul>
-      <a class="plan-cta free" href="https://gum.co/voicetype" target="_blank">Download Free</a>
+      <a class="plan-btn free-btn" href="https://gum.co/voicetype" target="_blank">Download Free</a>
     </div>
-    <div class="plan pro">
-      <div class="plan-name">PRO</div>
-      <div class="plan-price">$9 <span>one-time</span></div>
-      <div class="plan-desc">Lifetime license, all updates</div>
-      <ul>
-        <li>Unlimited transcriptions</li>
-        <li>All languages</li>
-        <li>Custom hotkey</li>
-        <li>Microphone selection</li>
-        <li>AI editing modes</li>
-        <li>Snippets (phrase expansion)</li>
-        <li>Personal dictionary</li>
+
+    <div class="plan pro reveal reveal-delay-3">
+      <div class="plan-badge pro-b">PRO ✦</div>
+      <div class="plan-price"><sup>$</sup>9 <span>one-time</span></div>
+      <div class="plan-desc">Lifetime license · all future updates</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Unlimited transcriptions</li>
+        <li><span class="check">✓</span> All 50+ languages</li>
+        <li><span class="check">✓</span> Custom hotkey</li>
+        <li><span class="check">✓</span> Microphone selection</li>
+        <li><span class="check">✓</span> AI editing modes</li>
+        <li><span class="check">✓</span> Snippets expansion</li>
+        <li><span class="check">✓</span> Personal dictionary</li>
       </ul>
-      <a class="plan-cta paid" href="https://gum.co/voicetype" target="_blank">Get PRO — $9</a>
+      <a class="plan-btn pro-btn" href="https://gum.co/voicetype" target="_blank">Get PRO — $9</a>
     </div>
   </div>
 </section>
 
-<hr class="divider" />
+<div class="glow-div"></div>
 
 <!-- FAQ -->
-<section>
-  <h2>FAQ</h2>
-  <p class="section-sub"></p>
+<section id="faq">
+  <div class="section-tag reveal">FAQ</div>
+  <h2 class="reveal reveal-delay-1">Questions <span class="gradient-text">answered</span></h2>
+  <br>
   <div class="faq">
-    <details>
-      <summary>Do I need a Groq account?</summary>
-      <p>Yes — Groq provides the AI transcription. Sign up free at <a href="https://console.groq.com" target="_blank">console.groq.com</a> and create an API key. Groq's free tier is generous and more than enough for daily use.</p>
+    <details class="reveal">
+      <summary>Do I need a Groq account?<div class="faq-icon">+</div></summary>
+      <p>Yes — Groq provides the AI transcription engine. Sign up free at <a href="https://console.groq.com" target="_blank">console.groq.com</a> and create an API key in seconds. Their free tier is very generous — easily covers hundreds of dictations per day.</p>
     </details>
-    <details>
-      <summary>Will it work without internet?</summary>
-      <p>VoiceType falls back to local Whisper (offline mode) if no Groq key is set. Local mode requires more RAM and is slower, but works 100% offline.</p>
+    <details class="reveal reveal-delay-1">
+      <summary>Will it work without internet?<div class="faq-icon">+</div></summary>
+      <p>VoiceType can fall back to local Whisper (offline mode) if no Groq key is set. Offline mode works 100% without internet but requires more RAM and is slower. For best results, use Groq.</p>
     </details>
-    <details>
-      <summary>Which Windows versions are supported?</summary>
-      <p>Windows 10 and Windows 11 (64-bit). No installation needed — just run the .exe.</p>
+    <details class="reveal reveal-delay-2">
+      <summary>Which Windows versions are supported?<div class="faq-icon">+</div></summary>
+      <p>Windows 10 and Windows 11 (64-bit). No installation needed — just run VoiceType.exe directly. No admin rights required.</p>
     </details>
-    <details>
-      <summary>How do I get my PRO license key after purchase?</summary>
-      <p>Gumroad sends your license key by email immediately after payment. Paste it into VoiceType → Settings → License key. That's it.</p>
+    <details class="reveal reveal-delay-3">
+      <summary>How do I get my PRO license key after purchase?<div class="faq-icon">+</div></summary>
+      <p>Gumroad sends your license key by email immediately after payment. Open VoiceType → Settings → License key, paste it in, and the status turns green instantly. No internet check needed — validation is offline.</p>
     </details>
-    <details>
-      <summary>Can I use VoiceType in Russian / Ukrainian / other languages?</summary>
-      <p>Yes. Set language to "auto" and VoiceType detects it automatically, or pin a specific language in Settings.</p>
+    <details class="reveal reveal-delay-4">
+      <summary>Can I use it in Russian or Ukrainian?<div class="faq-icon">+</div></summary>
+      <p>Absolutely. Set language to "auto" — VoiceType detects automatically — or pin a specific language in Settings. Russian, Ukrainian, German, French, Spanish, Chinese and 40+ more are supported natively by Whisper.</p>
     </details>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
-  <p>VoiceType · Windows voice dictation powered by Groq Whisper large-v3</p>
-  <p style="margin-top:8px">Questions? <a href="mailto:support@voicetype.app">support@voicetype.app</a></p>
+  <div class="footer-logo">
+    <div class="logo-orb" style="width:20px;height:20px;animation:none"></div>
+    VoiceType
+  </div>
+  <p>© 2026 VoiceType. All rights reserved.</p>
+  <div class="footer-links">
+    <a href="mailto:support@voicetype.app">Support</a>
+    <a href="https://gum.co/voicetype" target="_blank">Buy PRO</a>
+    <a href="https://console.groq.com" target="_blank">Get Groq Key</a>
+  </div>
 </footer>
+
+<!-- THREE.JS -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+// ── THREE.JS 3D AUDIO WAVE ──────────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('hero-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+  camera.position.set(0, 3.5, 5);
+  camera.lookAt(0, 0, 0);
+
+  // Grid plane geometry
+  const geo = new THREE.PlaneGeometry(18, 18, 80, 80);
+  geo.rotateX(-Math.PI / 2);
+
+  const positions = geo.attributes.position;
+  const baseY = new Float32Array(positions.count);
+  for (let i = 0; i < positions.count; i++) {
+    baseY[i] = positions.getY(i);
+  }
+
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0x6c63ff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.18,
+  });
+
+  const mesh = new THREE.Mesh(geo, mat);
+  scene.add(mesh);
+
+  // Second layer — cyan tint
+  const geo2 = new THREE.PlaneGeometry(18, 18, 40, 40);
+  geo2.rotateX(-Math.PI / 2);
+  const mat2 = new THREE.MeshBasicMaterial({
+    color: 0x00d4ff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.07,
+  });
+  const mesh2 = new THREE.Mesh(geo2, mat2);
+  mesh2.position.y = -0.05;
+  scene.add(mesh2);
+
+  let mouse = { x: 0, y: 0 };
+  document.addEventListener('mousemove', e => {
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  });
+
+  function resize() {
+    const w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.012;
+
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const z = pos.getZ(i);
+      const wave =
+        Math.sin(x * 0.6 + t * 1.2) * 0.35 +
+        Math.sin(z * 0.5 + t * 0.9) * 0.30 +
+        Math.sin((x + z) * 0.4 + t * 0.7) * 0.20 +
+        Math.sin(x * 0.3 - z * 0.4 + t * 1.5) * 0.15 +
+        mouse.x * Math.sin(z * 0.3 + t) * 0.15 +
+        mouse.y * Math.cos(x * 0.3 + t) * 0.15;
+      pos.setY(i, baseY[i] + wave);
+    }
+    pos.needsUpdate = true;
+
+    const pos2 = geo2.attributes.position;
+    const base2 = geo2.rotateX; // reuse same wave
+    for (let i = 0; i < pos2.count; i++) {
+      const x = pos2.getX(i);
+      const z = pos2.getZ(i);
+      const wave2 =
+        Math.sin(x * 0.5 + t * 0.8 + 1) * 0.25 +
+        Math.sin(z * 0.6 + t * 1.1 + 2) * 0.20;
+      pos2.setY(i, wave2);
+    }
+    pos2.needsUpdate = true;
+
+    // Subtle camera drift
+    camera.position.x += (mouse.x * 0.4 - camera.position.x) * 0.03;
+    camera.position.y += (3.5 + mouse.y * 0.3 - camera.position.y) * 0.03;
+    camera.lookAt(0, 0, 0);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+
+// ── WAVE BARS (decorative) ─────────────────────────────────────────────
+const waveContainer = document.getElementById('waveBars');
+if (waveContainer) {
+  for (let i = 0; i < 18; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'wave-bar';
+    bar.style.animationDelay = `${(i * 0.07).toFixed(2)}s`;
+    bar.style.animationDuration = `${0.6 + Math.random() * 0.6}s`;
+    waveContainer.appendChild(bar);
+  }
+}
+
+// ── SCROLL REVEAL ──────────────────────────────────────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── COUNTER ANIMATION ─────────────────────────────────────────────────
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting && e.target.dataset.target) {
+      const target = parseInt(e.target.dataset.target);
+      let current = 0;
+      const step = target / 60;
+      const timer = setInterval(() => {
+        current += step;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        e.target.textContent = Math.floor(current);
+      }, 16);
+      counterObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('[data-target]').forEach(el => counterObserver.observe(el));
+
+// ── FAQ ICONS ─────────────────────────────────────────────────────────
+document.querySelectorAll('details').forEach(det => {
+  det.addEventListener('toggle', () => {
+    const icon = det.querySelector('.faq-icon');
+    if (icon) icon.textContent = det.open ? '−' : '+';
+  });
+});
+</script>
 
 </body>
 </html>
