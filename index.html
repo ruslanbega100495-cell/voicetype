@@ -566,41 +566,32 @@
 
     /* ── PRICING ── */
     .period-switch {
-      display: flex;
-      gap: 4px;
-      background: rgba(255,255,255,.06);
-      border-radius: 100px;
-      padding: 4px;
-      margin: 0 auto 20px;
-      width: fit-content;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: rgba(255,255,255,.05);
+      border-radius: 16px;
+      padding: 6px;
+      margin: 0 0 22px;
     }
     .period-btn {
-      padding: 6px 16px;
-      border-radius: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 9px 8px;
+      border-radius: 10px;
       border: none;
       background: transparent;
-      color: #888;
-      font-size: 12px;
-      font-weight: 600;
+      color: #666;
       cursor: pointer;
-      transition: all .2s;
-      white-space: nowrap;
+      transition: all .22s;
       font-family: inherit;
     }
-    .period-btn.active {
-      background: linear-gradient(135deg, #6c63ff, #00d4ff);
-      color: #fff;
-    }
-    .period-save {
-      display: inline-block;
-      font-size: 10px;
-      background: rgba(0,212,255,.15);
-      color: #00d4ff;
-      padding: 1px 6px;
-      border-radius: 100px;
-      margin-left: 4px;
-      font-weight: 700;
-    }
+    .period-btn:hover { background: rgba(255,255,255,.06); color: #aaa; }
+    .period-btn.active { background: linear-gradient(135deg,#6c63ff,#00d4ff); color: #fff; }
+    .period-name { font-size: 12px; font-weight: 700; }
+    .period-tag  { font-size: 10px; font-weight: 600; opacity: .75; }
 
     .pricing-grid {
       display: grid;
@@ -1102,8 +1093,22 @@
     <div class="plan pro reveal reveal-delay-2">
       <div class="plan-badge pro-b" id="sub-badge">PRO Monthly</div>
       <div class="period-switch">
-        <button class="period-btn active" onclick="setPeriod(0)">Monthly</button>
-        <button class="period-btn" onclick="setPeriod(1)">Yearly <span class="period-save">−15%</span></button>
+        <button class="period-btn active" onclick="setPeriod(0)">
+          <span class="period-name">Monthly</span>
+          <span class="period-tag">$5/mo</span>
+        </button>
+        <button class="period-btn" onclick="setPeriod(1)">
+          <span class="period-name">3 Months</span>
+          <span class="period-tag">save 5%</span>
+        </button>
+        <button class="period-btn" onclick="setPeriod(2)">
+          <span class="period-name">6 Months</span>
+          <span class="period-tag">save 10%</span>
+        </button>
+        <button class="period-btn" onclick="setPeriod(3)">
+          <span class="period-name">Yearly</span>
+          <span class="period-tag">save 15%</span>
+        </button>
       </div>
       <div class="plan-price"><sup>$</sup><span id="sub-price">5</span> <span id="sub-period">/ month</span></div>
       <div class="plan-desc" id="sub-desc">Cancel anytime · billed monthly</div>
@@ -1345,8 +1350,10 @@ document.querySelectorAll('details').forEach(det => {
 
 // ── PRICING PERIOD SWITCH ───────────────────────────────────────────────
 const _periods = [
-  { badge: 'PRO Monthly',  price: '5',    period: '/ month', desc: 'Cancel anytime · billed monthly',     btn: 'Subscribe — $5/mo',   url: 'https://app.lemonsqueezy.com/buy/voicetype-monthly' },
-  { badge: 'PRO Yearly',   price: '4.25', period: '/ month', desc: 'Billed $51/year · save 15%',          btn: 'Subscribe — $51/yr',  url: 'https://app.lemonsqueezy.com/buy/voicetype-yearly'  },
+  { badge: 'PRO Monthly',   price: '5',    period: '/ month', desc: 'Cancel anytime · billed monthly',             btn: 'Subscribe — $5/mo',     url: 'https://app.lemonsqueezy.com/buy/voicetype-monthly'   },
+  { badge: 'PRO Quarterly', price: '4.75', period: '/ month', desc: 'Billed $14.25 every 3 months · save 5%',      btn: 'Subscribe — $14.25/qtr', url: 'https://app.lemonsqueezy.com/buy/voicetype-quarterly' },
+  { badge: 'PRO Biannual',  price: '4.50', period: '/ month', desc: 'Billed $27 every 6 months · save 10%',        btn: 'Subscribe — $27/6mo',   url: 'https://app.lemonsqueezy.com/buy/voicetype-biannual'  },
+  { badge: 'PRO Yearly',    price: '4.25', period: '/ month', desc: 'Billed $51/year · save 15%',                  btn: 'Subscribe — $51/yr',    url: 'https://app.lemonsqueezy.com/buy/voicetype-yearly'    },
 ];
 
 function setPeriod(idx) {
