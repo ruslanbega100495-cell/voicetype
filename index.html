@@ -834,7 +834,7 @@
     <a href="#pricing">Pricing</a>
     <a href="#faq">FAQ</a>
   </div>
-  <a class="btn-glow" href="#pricing">Get PRO — from $5/mo</a>
+  <a class="btn-glow" href="#pricing">Get PRO — from $12/mo</a>
 </nav>
 
 <!-- HERO -->
@@ -877,7 +877,7 @@
     <a class="btn-outline" href="#pricing">See PRO features</a>
   </div>
 
-  <p class="hero-note">50 free transcriptions/day · PRO from $5/mo · Windows 10/11</p>
+  <p class="hero-note">50 free transcriptions/day · PRO from $12/mo · Windows 10/11</p>
 </div>
 
 <!-- STATS -->
@@ -1095,7 +1095,7 @@
       <div class="period-switch">
         <button class="period-btn active" onclick="setPeriod(0)">
           <span class="period-name">Monthly</span>
-          <span class="period-tag">$5/mo</span>
+          <span class="period-tag">$12/mo</span>
         </button>
         <button class="period-btn" onclick="setPeriod(1)">
           <span class="period-name">3 Months</span>
@@ -1110,7 +1110,7 @@
           <span class="period-tag">save 15%</span>
         </button>
       </div>
-      <div class="plan-price"><sup>$</sup><span id="sub-price">5</span><span id="sub-period"> / month</span></div>
+      <div class="plan-price"><sup>$</sup><span id="sub-price">12</span><span id="sub-period"> / month</span></div>
       <div class="plan-desc" id="sub-desc">Cancel anytime · billed monthly</div>
       <ul class="plan-features">
         <li><span class="check">✓</span> Unlimited transcriptions</li>
@@ -1121,14 +1121,14 @@
         <li><span class="check">✓</span> Snippets expansion</li>
         <li><span class="check">✓</span> Personal dictionary</li>
       </ul>
-      <a class="plan-btn pro-btn" id="sub-btn" href="https://app.lemonsqueezy.com/buy/voicetype-monthly" target="_blank">Subscribe — $5/mo</a>
+      <a class="plan-btn pro-btn" id="sub-btn" href="https://nowpayments.io/payment/?iid=voicetype-monthly" target="_blank">Subscribe — $12/mo</a>
     </div>
 
     <!-- LIFETIME -->
     <div class="plan pro reveal reveal-delay-4" style="position:relative">
       <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#6c63ff,#00d4ff);color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:100px;white-space:nowrap">BEST VALUE</div>
       <div class="plan-badge pro-b">PRO Lifetime</div>
-      <div class="plan-price"><sup>$</sup>29 <span>one-time</span></div>
+      <div class="plan-price"><sup>$</sup>59 <span>one-time</span></div>
       <div class="plan-desc">Pay once · own it forever</div>
       <ul class="plan-features">
         <li><span class="check">✓</span> Unlimited transcriptions</li>
@@ -1139,7 +1139,7 @@
         <li><span class="check">✓</span> Snippets expansion</li>
         <li><span class="check">✓</span> Personal dictionary</li>
       </ul>
-      <a class="plan-btn pro-btn" href="https://gum.co/voicetype-pro" target="_blank">Get Lifetime — $29</a>
+      <a class="plan-btn pro-btn" href="https://nowpayments.io/payment/?iid=voicetype-lifetime" target="_blank">Get Lifetime — $59</a>
     </div>
   </div>
 </section>
@@ -1350,10 +1350,10 @@ document.querySelectorAll('details').forEach(det => {
 
 // ── PRICING PERIOD SWITCH ───────────────────────────────────────────────
 const _periods = [
-  { badge: 'PRO Monthly',   price: '5',    period: '/ month', desc: 'Cancel anytime · billed monthly',             btn: 'Subscribe — $5/mo',     url: 'https://app.lemonsqueezy.com/buy/voicetype-monthly'   },
-  { badge: 'PRO Quarterly', price: '4.75', period: '/ month', desc: 'Billed $14.25 every 3 months · save 5%',      btn: 'Subscribe — $14.25/qtr', url: 'https://app.lemonsqueezy.com/buy/voicetype-quarterly' },
-  { badge: 'PRO Biannual',  price: '4.50', period: '/ month', desc: 'Billed $27 every 6 months · save 10%',        btn: 'Subscribe — $27/6mo',   url: 'https://app.lemonsqueezy.com/buy/voicetype-biannual'  },
-  { badge: 'PRO Yearly',    price: '4.25', period: '/ month', desc: 'Billed $51/year · save 15%',                  btn: 'Subscribe — $51/yr',    url: 'https://app.lemonsqueezy.com/buy/voicetype-yearly'    },
+  { badge: 'PRO Monthly',   price: '12',   period: '/ month', desc: 'Cancel anytime · billed monthly',              btn: 'Subscribe — $12/mo',    url: 'https://nowpayments.io/payment/?iid=voicetype-monthly'   },
+  { badge: 'PRO Quarterly', price: '9.60', period: '/ month', desc: 'Billed $29 every 3 months · save 20%',         btn: 'Subscribe — $29/qtr',   url: 'https://nowpayments.io/payment/?iid=voicetype-quarterly' },
+  { badge: 'PRO Biannual',  price: '8.30', period: '/ month', desc: 'Billed $50 every 6 months · save 30%',         btn: 'Subscribe — $50/6mo',   url: 'https://nowpayments.io/payment/?iid=voicetype-biannual'  },
+  { badge: 'PRO Yearly',    price: '7.15', period: '/ month', desc: 'Billed $86/year · save 40%',                   btn: 'Subscribe — $86/yr',    url: 'https://nowpayments.io/payment/?iid=voicetype-yearly'    },
 ];
 
 function setPeriod(idx) {
